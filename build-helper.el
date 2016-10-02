@@ -63,7 +63,7 @@
   :type 'boolean)
 
 (defvar build-helper--lists '()
-  "The lists.")
+  "Build helper state lists.")
 
 (defun build-helper--save-lists ()
   "Save the lists to the build-helper-file."
