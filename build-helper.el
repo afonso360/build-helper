@@ -80,5 +80,15 @@
   (build-helper--load-lists)
   (add-hook 'kill-emacs-hook 'build-helper--save-lists))
 
+(defun build-helper--get-list (project major list)
+  "Get command list for PROJECT for MAJOR mode and LIST.
+If any of those is not found return nil."
+  (let ((project-list (assoc project build-helper--lists)))
+    (when project-list
+      (let ((major-mode-lists (assoc major (cdr project-list))))
+	(when major-mode-lists
+	  (let ((final-list (assoc 'build major-mode-lists)))
+	    (car (cddr final-list))))))))
+
 (provide 'build-helper)
 ;;; build-helper.el ends here
