@@ -1,5 +1,24 @@
 ;;; build-helper --- Utilities to help build code
 
+;; Copyright (C) 2016 Afonso Bordado
+
+;; Author:  Afonso Bordado <afonsobordado@az8.co>
+;; Version: 0.1
+;; URL: http://github.com/afonso360/build-helper
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 ;;; Commentary:
 ;; Goals:
 ;; Provide multiple compile-history lists (build, run, test, etc..)
@@ -25,6 +44,7 @@
 ;;   Check for a modified compile-history (if that exists use that on the recompile, otherwise run it again)
 
 ;;; Code:
+(require 'projectile)
 
 ;;;### autoload
 
