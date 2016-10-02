@@ -28,12 +28,13 @@
 ;;   Require projectile and use that
 ;;   Have a .build-helper-lists.el that maintains the list of these projects and their lists
 ;;     .build-helper-list.el should be roughly like the following
-;;     '(("project/root/dir" . (('c-mode . (('build . "make" "gcc foo.c")
-;;     				            ('run   . "./a.out")
-;;     				            ('test  . "make run")))
-;;                              ('java-mode . (('build . "javac main.java")))))
+;;     '(("project/root/dir" . ((c-mode . ((build . '("make" "gcc foo.c"))
+;;     	                                   (run   . '("./a.out"))
+;;     	                                   (test  . '("make run"))))
+;;     			        (java-mode . ((build . '("javac main.java"))))))
 ;;
-;;       ("project2/root/dir" . (('elisp-mode . (('test . "elisp test command"))))))
+;;       ("project2/root/dir" . ((elisp-mode . ((test . '("elisp test command"))))))))
+;;
 ;;
 ;;     From the example above, java-mode would never have run or test commands
 ;;     because those would be elisp functions.  (this is just an example)
