@@ -26,11 +26,11 @@
 ;; Per project lists
 ;;   build-helper will switch to the project root dir before running any of the commands
 ;;   Require projectile and use that
-;;   Have a .build-helper-list.el that maintains the list of these projects and their lists
+;;   Have a .build-helper-lists.el that maintains the list of these projects and their lists
 ;;     .build-helper-list.el should be roughly like the following
 ;;     '(("project/root/dir" . (('c-mode . (('build . "make" "gcc foo.c")
-;;     				          ('run   . "./a.out")
-;;     				          ('test  . "make run")))
+;;     				            ('run   . "./a.out")
+;;     				            ('test  . "make run")))
 ;;                              ('java-mode . (('build . "javac main.java")))))
 ;;
 ;;       ("project2/root/dir" . (('elisp-mode . (('test . "elisp test command"))))))
@@ -43,10 +43,41 @@
 ;;   The return value should be checked to allow multiple chains of compilation functions
 ;;   Check for a modified compile-history (if that exists use that on the recompile, otherwise run it again)
 
-;;; Code:
-(require 'projectile)
 
-;;;### autoload
+;; Some code based on company-statistics.el (https://github.com/company-mode/company-statistics)
+;;; Usage:
+
+;;; Code:
+(defgroup build-helper nil
+  "Helper functions to build files."
+  :group 'build-helper)
+
+(defcustom build-helper-file
+  (concat user-emacs-directory ".build-helper-lists.el")
+  "File to save build-helper command history."
+  :type 'string)
+
+(defcustom build-helper-capture-function nil
+  "Whether we should capture compile commands called by external functions."
+  :type 'boolean)
+
+(defvar build-helper--lists '()
+  "The lists.")
+
+(defun build-helper--save-lists ()
+  "Save the lists to the build-helper-file."
+  (with-temp-buffer
+    (insert (format "(setq build-helper--lists %s)" build-helper--lists))
+    (write-file build-helper-file)))
+
+(defun build-helper--load-lists ()
+  "Load the lists from build-helper-file."
+  (load build-helper-file 'noerror nil 'nosuffix))
+
+(defun build-helper-setup ()
+  "Setup build-helper."
+  (build-helper--load-lists)
+  (add-hook 'kill-emacs-hook 'build-helper--save-lists))
 
 (provide 'build-helper)
 ;;; build-helper.el ends here
