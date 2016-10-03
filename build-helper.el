@@ -93,6 +93,7 @@
 If any of PROJECT, MAJOR or TARGET are not found, create empty"
   (let ((project-list (gv-ref (assoc project build-helper--targets))))
 
+    ;; Initialize an empty project if none is found
     (unless (gv-deref project-list)
       (let ((proj '(nil . ())))
 	(setcar proj project)
@@ -100,6 +101,7 @@ If any of PROJECT, MAJOR or TARGET are not found, create empty"
 	(setq project-list (gv-ref proj))))
 
     (let ((major-mode-list (gv-ref (assoc major (gv-deref project-list)))))
+      ;; Initialize an empty major-mode in the project if none is found
       (unless (gv-deref major-mode-list)
 	(let ((mm '(nil . ())))
 	  (setcar mm major)
@@ -107,6 +109,7 @@ If any of PROJECT, MAJOR or TARGET are not found, create empty"
 	  (setq major-mode-list (gv-ref mm))))
 
       (let ((target-list (gv-ref (assoc target (gv-deref major-mode-list)))))
+	;; Initialize an empty target-list in the major-mode-list if none is found
 	(unless (gv-deref target-list)
 	  (let ((targ '(nil . ())))
 	    (setcar targ target)
@@ -123,7 +126,9 @@ If any of those is not found return nil."
       (let ((major-mode-targets (assoc major (cdr project-target))))
 	(when major-mode-targets
 	  (let ((final-target (assoc 'build major-mode-targets)))
-	    (cdr final-target)))))))
+	    (when final-target
+	      (cdr final-target))))))))
+
 
 
 (provide 'build-helper)
