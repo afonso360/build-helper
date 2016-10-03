@@ -25,7 +25,7 @@
 ;; Provide compile-history target per target (build, run, test, etc..)
 ;; Provide a recompile and compile function for each target
 ;; Provide a function to clear projects
-;; Provide a command number limit
+;; Provide a target command number limit
 ;; Should be able to set comint option per target
 ;; Per project targets
 ;;   build-helper will switch to the project root dir before running any of the commands
@@ -125,10 +125,44 @@ If any of those is not found return nil."
     (when project-target
       (let ((major-mode-targets (assoc major (cdr project-target))))
 	(when major-mode-targets
-	  (let ((final-target (assoc 'build major-mode-targets)))
+	  (let ((final-target (assoc target major-mode-targets)))
 	    (when final-target
 	      (cdr final-target))))))))
 
+(defun build-helper-run (target)
+  "Run a TARGET.
+This includes functions associated with the current `major-mode'.
+If none of those work, a `compile' prompt with a target and `major-mode' based history.
+This compile command will be executed from the projectile root directory."
+  (interactive)
+  ;; ask for target type interactively
+  ;; Run functions, remember to check `build-helper-capture-function'
+  (let* ((compile-history (build-helper--get-target (projectile-project-root)
+						    major-mode
+						    target))
+	 (command (completing-read (format "'%s' command: " target)
+				   nil
+				   nil
+				   nil
+				   (car  compile-history)
+				   '(compile-history . 1))))
+    ;; Add command to history if it's different from the last command executed
+    (unless (string-equal (car compile-history) (cadr compile-history))
+      (build-helper--add-to-target (projectile-project-root) major-mode target command))
+    ;; comint!
+    (let ((default-directory (projectile-project-root)))
+      (compile command nil))))
+
+;; (build-helper-run 'run)
+
+;; (setq build-helper--targets '())
+;; (setq build-helper--targets
+;;       '(("/home/afonso/git/build-helper/" . ((c-mode . ((build . ("make" "gcc foo.c"))
+;; 							(run   . ("./a.out"))
+;; 							(test  . ("make run"))))
+;; 					     (java-mode . ((build . ("javac main.java"))))))
+;; 	("project2/root/dir" . ((elisp-mode . ((test . ("elisp test command"))))))))
+;; (build-helper--add-to-target (projectile-project-root) major-mode 'run "command")
 
 
 (provide 'build-helper)
