@@ -1,10 +1,11 @@
-;;; build-helper --- Utilities to help build code
+;;; build-helper --- Utilities to help build code -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2016 Afonso Bordado
 
 ;; Author:  Afonso Bordado <afonsobordado@az8.co>
 ;; Version: 0.1
 ;; URL: http://github.com/afonso360/build-helper
+;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -62,26 +63,50 @@
   "Whether we should capture compile commands called by external functions."
   :type 'boolean)
 
-(defvar build-helper--lists '()
-  "Build helper state lists.")
+(defvar build-helper--targets '()
+  "Build helper targets.")
 
-(defun build-helper--save-lists ()
-  "Save the lists to the build-helper-file."
+(defun build-helper--save-targets ()
+  "Save the targets to the build-helper-file."
   (with-temp-buffer
-    (insert (format "(setq build-helper--lists %s)" build-helper--lists))
+    (insert (format "(setq build-helper--targets %s)" build-helper--targets))
     (write-file build-helper-file)))
 
-(defun build-helper--load-lists ()
-  "Load the lists from build-helper-file."
+(defun build-helper--load-targets ()
+  "Load the targets from build-helper-file."
   (load build-helper-file 'noerror nil 'nosuffix))
 
 (defun build-helper-setup ()
   "Setup build-helper."
-  (build-helper--load-lists)
-  (add-hook 'kill-emacs-hook 'build-helper--save-lists))
+  (build-helper--load-targets)
+  (add-hook 'kill-emacs-hook 'build-helper--save-targets))
 
-(defun build-helper--get-list (project major list)
-  "Get command list for PROJECT for MAJOR mode and LIST.
+(defun build-helper--add-to-target (project major target command)
+  "Add COMMAND entry to PROJECT, MAJOR mode and TARGET list.
+If any of PROJECT, MAJOR or TARGET are not found, create empty"
+  (let ((project-list (gv-ref (assoc project build-helper--targets))))
+
+    (unless (gv-deref project-list)
+      (let ((proj '(nil . ())))
+	(setcar proj project)
+	(push proj build-helper--targets)
+	(setq project-list (gv-ref proj))))
+
+    (let ((major-mode-list (gv-ref (assoc major (gv-deref project-list)))))
+      (unless (gv-deref major-mode-list)
+	(let ((mm '(nil . ())))
+	  (setcar mm major)
+	  (push mm (cdr (gv-deref project-list)))
+	  (setq major-mode-list (gv-ref mm))))
+
+      (let ((target-list (gv-ref (assoc target (gv-deref major-mode-list)))))
+	(unless (gv-deref target-list)
+	  (let ((targ '(nil . ())))
+	    (setcar targ target)
+	    (push targ (cdr (gv-deref major-mode-list)))
+	    (setq target-list (gv-ref targ))))
+
+	(push command (cdr (gv-deref target-list)))))))
 If any of those is not found return nil."
   (let ((project-list (assoc project build-helper--lists)))
     (when project-list
