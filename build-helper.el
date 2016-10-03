@@ -107,13 +107,17 @@ If any of PROJECT, MAJOR or TARGET are not found, create empty"
 	    (setq target-list (gv-ref targ))))
 
 	(push command (cdr (gv-deref target-list)))))))
+
+(defun build-helper--get-target (project major target)
+  "Get `compile-history' list for PROJECT for MAJOR mode and TARGET.
 If any of those is not found return nil."
-  (let ((project-list (assoc project build-helper--lists)))
-    (when project-list
-      (let ((major-mode-lists (assoc major (cdr project-list))))
-	(when major-mode-lists
-	  (let ((final-list (assoc 'build major-mode-lists)))
-	    (car (cddr final-list))))))))
+  (let ((project-target (assoc project build-helper--targets)))
+    (when project-target
+      (let ((major-mode-targets (assoc major (cdr project-target))))
+	(when major-mode-targets
+	  (let ((final-target (assoc 'build major-mode-targets)))
+	    (cdr final-target)))))))
+
 
 (provide 'build-helper)
 ;;; build-helper.el ends here
