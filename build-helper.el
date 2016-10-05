@@ -123,9 +123,5 @@ This compile command will be executed from the projectile root directory."
     (let ((default-directory (projectile-project-root)))
       (compile command t))))
 
-(build-helper-run 'run)
-
-
-
 (provide 'build-helper)
 ;;; build-helper.el ends here
