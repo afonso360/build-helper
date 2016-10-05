@@ -55,7 +55,6 @@
 
 ;;; Code:
 (require 'projectile)
-(require 'gv)
 
 (defgroup build-helper nil
   "Helper functions to build files."
@@ -65,10 +64,6 @@
   (concat user-emacs-directory ".build-helper-targets.el")
   "File to save build-helper command history."
   :type 'string)
-
-(defcustom build-helper-capture-function nil
-  "Whether we should capture compile commands called by external functions."
-  :type 'boolean)
 
 (defvar build-helper--targets '()
   "Build helper targets.")
@@ -88,55 +83,32 @@
   (build-helper--load-targets)
   (add-hook 'kill-emacs-hook 'build-helper--save-targets))
 
-(defun build-helper--add-to-target (project major target command)
-  "Add COMMAND entry to PROJECT, MAJOR mode and TARGET list.
-If any of PROJECT, MAJOR or TARGET are not found, create empty"
-  (let ((project-list (gv-ref (assoc project build-helper--targets))))
-
-    ;; Initialize an empty project if none is found
-    (unless (gv-deref project-list)
-      (let ((proj '(nil . ())))
-	(setcar proj project)
-	(push proj build-helper--targets)
-	(setq project-list (gv-ref proj))))
-
-    (let ((major-mode-list (gv-ref (assoc major (gv-deref project-list)))))
-      ;; Initialize an empty major-mode in the project if none is found
-      (unless (gv-deref major-mode-list)
-	(let ((mm '(nil . ())))
-	  (setcar mm major)
-	  (push mm (cdr (gv-deref project-list)))
-	  (setq major-mode-list (gv-ref mm))))
-
-      (let ((target-list (gv-ref (assoc target (gv-deref major-mode-list)))))
-	;; Initialize an empty target-list in the major-mode-list if none is found
-	(unless (gv-deref target-list)
-	  (let ((targ '(nil . ())))
-	    (setcar targ target)
-	    (push targ (cdr (gv-deref major-mode-list)))
-	    (setq target-list (gv-ref targ))))
-
-	(push command (cdr (gv-deref target-list)))))))
-
 (defun build-helper--get-target (project major target)
   "Get `compile-history' list for PROJECT for MAJOR mode and TARGET.
 If any of those is not found return nil."
-  (let ((project-target (assoc project build-helper--targets)))
-    (when project-target
-      (let ((major-mode-targets (assoc major (cdr project-target))))
-	(when major-mode-targets
-	  (let ((final-target (assoc target major-mode-targets)))
-	    (when final-target
-	      (cdr final-target))))))))
+  (alist-get target (alist-get major (alist-get project build-helper--targets nil) nil) nil))
 
+(defun build-helper--add-command-to-target (project major target command)
+  "Add COMMAND entry to PROJECT, MAJOR mode and TARGET list.
+If any of PROJECT, MAJOR or TARGET are not found, create empty"
+  (push command
+  	(alist-get target
+  		   (alist-get major
+  			      (alist-get project build-helper--targets nil)
+  			      nil)
+  		   nil)))
+
+;;;###autoload
 (defun build-helper-run (target)
   "Run a TARGET.
 This includes functions associated with the current `major-mode'.
 If none of those work, a `compile' prompt with a target and `major-mode' based history.
 This compile command will be executed from the projectile root directory."
-  (interactive)
+  (interactive "sTarget: ")
   ;; ask for target type interactively
   ;; Run functions, remember to check `build-helper-capture-function'
+  (when (stringp target)
+    (setq target (intern target)))
   (let* ((compile-history (build-helper--get-target (projectile-project-root)
 						    major-mode
 						    target))
@@ -146,23 +118,13 @@ This compile command will be executed from the projectile root directory."
 				   nil
 				   (car  compile-history)
 				   '(compile-history . 1))))
-    ;; Add command to history if it's different from the last command executed
     (unless (string-equal (car compile-history) (cadr compile-history))
-      (build-helper--add-to-target (projectile-project-root) major-mode target command))
-    ;; comint!
+      (build-helper--add-command-to-target (projectile-project-root) major-mode target command))
     (let ((default-directory (projectile-project-root)))
-      (compile command nil))))
+      (compile command t))))
 
-;; (build-helper-run 'run)
+(build-helper-run 'run)
 
-;; (setq build-helper--targets '())
-;; (setq build-helper--targets
-;;       '(("/home/afonso/git/build-helper/" . ((c-mode . ((build . ("make" "gcc foo.c"))
-;; 							(run   . ("./a.out"))
-;; 							(test  . ("make run"))))
-;; 					     (java-mode . ((build . ("javac main.java"))))))
-;; 	("project2/root/dir" . ((elisp-mode . ((test . ("elisp test command"))))))))
-;; (build-helper--add-to-target (projectile-project-root) major-mode 'run "command")
 
 
 (provide 'build-helper)
