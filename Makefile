@@ -16,6 +16,6 @@ compile:
 	${CASK} exec ${EMACS} -Q -batch -f batch-byte-compile build-helper.el
 
 clean-elc:
-	rm -f build-helper.el
+	rm -f build-helper.elc
 
 .PHONY: all test docs unit
