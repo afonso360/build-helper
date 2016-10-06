@@ -27,22 +27,7 @@
 ;; Provide a function to clear projects
 ;; Provide a target command number limit
 ;; Should be able to set comint option per target
-;; Per project targets
-;;   build-helper will switch to the project root dir before running any of the commands
-;;   Require projectile and use that
-;;   Per target comint setting defaults to nil
-;;   Have a .build-helper-targets.el that maintains the target of these projects and their targets
-;;     .build-helper-targets.el should be roughly like the following
-;;     '(("project/root/dir" . ((c-mode . ((build . ("make" "gcc foo.c"))
-;;     	                                   (run   . ("./a.out"))
-;;     	                                   (test  . ("make run"))))
-;;     			        (java-mode . ((build . ("javac main.java"))))))
-;;
-;;       ("project2/root/dir" . ((elisp-mode . ((test . ("elisp test command"))))))))
-;;
-;;
-;;     From the example above, java-mode would never have run or test targets
-;;     because those would be elisp functions that would never fail.  (this is just an example)
+;; Per target comint setting defaults to nil
 ;;
 ;; Optionally allow compilation functions
 ;;   Compilation functions are based on the major-mode from which they are invoked
@@ -107,7 +92,7 @@ If any of PROJECT, MAJOR or TARGET are not found, create empty"
 		   nil)))
 
 ;;;###autoload
-(defun build-helper-run-last (target)
+(defun build-helper-re-run (target)
   "Run the last command executed on a TARGET."
   (interactive
     (list (completing-read "Target: "
@@ -148,6 +133,44 @@ This compile command will be executed from the projectile root directory."
       (build-helper--add-command-to-target (projectile-project-root) major-mode target command))
     (let ((default-directory (projectile-project-root)))
       (compile command t))))
+
+;;;###autoload
+(defun build-helper-re-run-test ()
+  "Run `build-helper-re-run' with target test."
+  (interactive)
+  (build-helper-re-run 'test))
+
+;;;###autoload
+(defun build-helper-re-run-build ()
+  "Run `build-helper-re-run' with target build."
+  (interactive)
+  (build-helper-re-run 'build))
+
+;;;###autoload
+(defun build-helper-re-run-run ()
+  "Run `build-helper-re-run' with target run."
+  (interactive)
+  (build-helper-re-run 'run))
+
+
+;;;###autoload
+(defun build-helper-run-test ()
+  "Run `build-helper-run' with target test."
+  (interactive)
+  (build-helper-run 'test))
+
+;;;###autoload
+(defun build-helper-run-build ()
+  "Run `build-helper-run' with target build."
+  (interactive)
+  (build-helper-run 'build))
+
+;;;###autoload
+(defun build-helper-run-run ()
+  "Run `build-helper-run' with target run."
+  (interactive)
+  (build-helper-run 'run))
+
 
 (provide 'build-helper)
 ;;; build-helper.el ends here
