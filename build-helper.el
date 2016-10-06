@@ -22,17 +22,10 @@
 
 ;;; Commentary:
 ;; Goals:
-;; Provide compile-history target per target (build, run, test, etc..)
-;; Provide a recompile and compile function for each target
-;; Provide a function to clear projects
-;; Provide a target command number limit
-;; Should be able to set comint option per target
-;; Per target comint setting defaults to nil
-;;
 ;; Optionally allow compilation functions
 ;;   Compilation functions are based on the major-mode from which they are invoked
-;;   The return value should be checked to allow multiple chains of compilation functions
-;;   Maybe: Check for a modified compile-history (if that exists use that on the recompile, otherwise run it again)
+;;   The return value should be checked to allow multiple
+;;chains of compilation functions
 
 
 ;; Some code based on company-statistics.el (https://github.com/company-mode/company-statistics)
@@ -69,21 +62,17 @@
   "Load the targets from build-helper-file."
   (load build-helper-file 'noerror nil 'nosuffix))
 
-(defun build-helper-setup ()
-  "Setup build-helper."
-  (build-helper--load-targets)
-  (add-hook 'kill-emacs-hook 'build-helper--save-targets))
-
 (defun build-helper--get-comint (major target)
-  "Get the comint value for TARGET in MAJOR mode or nil."
+  "Get the comint value for TARGET in MAJOR mode or nil.
+Unlike with targets these values are not saved"
   (car (alist-get target (alist-get major build-helper--comint  nil) nil)))
 
 (defun build-helper--set-comint (major target value)
   "Set comint VALUE for TARGET in MAJOR mode.
 By default the value is nil."
-  (push value (alist-get target (alist-get major build-helper--comint  nil) nil)))
-
-
+  (push value
+	(alist-get target
+		   (alist-get major build-helper--comint  nil) nil)))
 
 (defun build-helper--get-target (project major target)
   "Get `compile-history' list for PROJECT for MAJOR mode and TARGET.
@@ -94,28 +83,34 @@ If any of those is not found return nil."
 
 (defun build-helper--get-target-string-list (project major)
   "Return a list of string targets for PROJECT and MAJOR mode."
-  (mapcar #'car
-	  (alist-get major
-			   (alist-get project build-helper--targets nil) nil)))
+  (mapcar
+   #'(lambda (a)
+       (symbol-name (car a)))
+   (cdr (assoc major (cdr (assoc project build-helper--targets))))))
 
 (defun build-helper--add-command-to-target (project major target command)
   "Add COMMAND entry to PROJECT, MAJOR mode and TARGET list.
 If any of PROJECT, MAJOR or TARGET are not found, create empty"
-  (push command
-	(alist-get target
-		   (alist-get major
-			      (alist-get project build-helper--targets nil)
-			      nil)
-		   nil)))
+  (let ((nplist (assoc-string project build-helper--targets)))
+    (unless nplist
+      (setq nplist (cons project '())))
+    (push command (alist-get target (alist-get major (cdr nplist) nil) nil))
+    (push nplist build-helper--targets)))
+
+;;;###autoload
+(defun build-helper-setup ()
+  "Setup build-helper."
+  (build-helper--load-targets)
+  (add-hook 'kill-emacs-hook 'build-helper--save-targets))
 
 ;;;###autoload
 (defun build-helper-re-run (target)
-  "Run the last command executed on a TARGET."
+  "Run the last command or functions associated with a TARGET."
   (interactive
-    (list (completing-read "Target: "
-		    (build-helper--get-target-string-list
-		     (projectile-project-root)
-		     major-mode))))
+   (list (completing-read "Target: "
+			  (build-helper--get-target-string-list
+			   (projectile-project-root)
+			   major-mode))))
   (when (stringp target)
     (setq target (intern target)))
   (let* ((compile-history (build-helper--get-target (projectile-project-root)
@@ -132,10 +127,11 @@ This includes functions associated with the current `major-mode'.
 If none of those work, a `compile' prompt with a target and `major-mode' based history.
 This compile command will be executed from the projectile root directory."
   (interactive
-    (list (completing-read "Target: "
-		    (build-helper--get-target-string-list
-		     (projectile-project-root)
-		     major-mode))))
+   (list (completing-read "Target: "
+			  (build-helper--get-target-string-list
+			   (projectile-project-root)
+			   major-mode)
+			  nil)))
   (when (stringp target)
     (setq target (intern target)))
   (let* ((compile-history (build-helper--get-target (projectile-project-root)
@@ -148,8 +144,12 @@ This compile command will be executed from the projectile root directory."
 				   nil
 				   (car  compile-history)
 				   '(compile-history . 1))))
+
     (unless (string-equal (car compile-history) (cadr compile-history))
-      (build-helper--add-command-to-target (projectile-project-root) major-mode target command))
+      (build-helper--add-command-to-target (projectile-project-root)
+					   major-mode
+					   target command))
+
     (let ((default-directory (projectile-project-root)))
       (compile command comint))))
 
@@ -171,7 +171,6 @@ This compile command will be executed from the projectile root directory."
   (interactive)
   (build-helper-re-run 'run))
 
-
 ;;;###autoload
 (defun build-helper-run-test ()
   "Run `build-helper-run' with target test."
@@ -189,7 +188,6 @@ This compile command will be executed from the projectile root directory."
   "Run `build-helper-run' with target run."
   (interactive)
   (build-helper-run 'run))
-
 
 (provide 'build-helper)
 ;;; build-helper.el ends here

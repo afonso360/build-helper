@@ -33,6 +33,7 @@
 Should default to nil
 Should be settable to nil
 Should be able to set multiple times the same value, return the latest one"
+  (setq build-helper--comint nil)
   (should (eq (build-helper--get-comint 'c-mode 'run) nil))
   (build-helper--set-comint 'c-mode 'run nil)
   (should (eq (build-helper--get-comint 'c-mode 'run) nil))
@@ -41,7 +42,27 @@ Should be able to set multiple times the same value, return the latest one"
   (build-helper--set-comint 'c-mode 'run nil)
   (should (eq (build-helper--get-comint 'c-mode 'run) nil)))
 
+(setq build-helper--targets nil)
+(build-helper--get-target-string-list "/" 'c-mode)
+(build-helper--add-command-to-target "/" 'c-mode 'test "ads")
+(build-helper--add-command-to-target "/" 'c-mode 'run "ads")
+(build-helper--get-target-string-list "/" 'c-mode)
 
+(ert-deftest get-target-string-list-test ()
+  "Test the `build-helper--get-target-string-list' function."
+  (setq build-helper--targets nil)
+  (should (equal (build-helper--get-target-string-list "/" 'c-mode) nil))
+  (build-helper--add-command-to-target "/" 'c-mode 'run "run")
+  (should (equal (build-helper--get-target-string-list "/" 'c-mode) '("run")))
+  (build-helper--add-command-to-target "/" 'c-mode 'test "test")
+  (should (equal (build-helper--get-target-string-list "/" 'c-mode) '("test" "run"))))
+
+
+;; (ert-deftest add-get-target-test ()
+;;   "Test both `build-helper--get-target' and `build-helper--get-comint'.
+;; Should default to nil
+;; Should be settable to nil
+;; Should be able to set multiple times the same value, return the latest one")
 
 (provide 'build-helper-test)
 ;;; build-helper-test.el ends here
