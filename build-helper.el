@@ -107,6 +107,22 @@ If any of PROJECT, MAJOR or TARGET are not found, create empty"
 		   nil)))
 
 ;;;###autoload
+(defun build-helper-run-last (target)
+  "Run the last command executed on a TARGET."
+  (interactive
+    (list (completing-read "Target: "
+		    (build-helper--get-target-string-list
+		     (projectile-project-root)
+		     major-mode))))
+  (when (stringp target)
+    (setq target (intern target)))
+  (let* ((compile-history (build-helper--get-target (projectile-project-root)
+						    major-mode
+						    target)))
+    (let ((default-directory (projectile-project-root)))
+      (compile (car compile-history) t))))
+
+;;;###autoload
 (defun build-helper-run (target)
   "Run a TARGET.
 This includes functions associated with the current `major-mode'.
