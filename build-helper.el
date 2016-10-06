@@ -1,4 +1,4 @@
-;;; build-helper --- Utilities to help build code -*- lexical-binding: t -*-
+;;; build-helper.el --- Utilities to help build code -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2016 Afonso Bordado
 
@@ -50,6 +50,12 @@
   "File to save build-helper command history."
   :type 'string)
 
+(defvar build-helper--functions '()
+  "Build helper functions.")
+
+(defvar build-helper--comint '()
+  "Build helper comint state.")
+
 (defvar build-helper--targets '()
   "Build helper targets.")
 
@@ -67,6 +73,17 @@
   "Setup build-helper."
   (build-helper--load-targets)
   (add-hook 'kill-emacs-hook 'build-helper--save-targets))
+
+(defun build-helper--get-comint (major target)
+  "Get the comint value for TARGET in MAJOR mode or nil."
+  (car (alist-get target (alist-get major build-helper--comint  nil) nil)))
+
+(defun build-helper--set-comint (major target value)
+  "Set comint VALUE for TARGET in MAJOR mode.
+By default the value is nil."
+  (push value (alist-get target (alist-get major build-helper--comint  nil) nil)))
+
+
 
 (defun build-helper--get-target (project major target)
   "Get `compile-history' list for PROJECT for MAJOR mode and TARGET.
@@ -103,9 +120,10 @@ If any of PROJECT, MAJOR or TARGET are not found, create empty"
     (setq target (intern target)))
   (let* ((compile-history (build-helper--get-target (projectile-project-root)
 						    major-mode
-						    target)))
+						    target))
+	 (comint (build-helper--get-comint major-mode target)))
     (let ((default-directory (projectile-project-root)))
-      (compile (car compile-history) t))))
+      (compile (car compile-history) comint))))
 
 ;;;###autoload
 (defun build-helper-run (target)
@@ -123,6 +141,7 @@ This compile command will be executed from the projectile root directory."
   (let* ((compile-history (build-helper--get-target (projectile-project-root)
 						    major-mode
 						    target))
+	 (comint (build-helper--get-comint major-mode target))
 	 (command (completing-read (format "'%s' command: " target)
 				   nil
 				   nil
@@ -132,7 +151,7 @@ This compile command will be executed from the projectile root directory."
     (unless (string-equal (car compile-history) (cadr compile-history))
       (build-helper--add-command-to-target (projectile-project-root) major-mode target command))
     (let ((default-directory (projectile-project-root)))
-      (compile command t))))
+      (compile command comint))))
 
 ;;;###autoload
 (defun build-helper-re-run-test ()

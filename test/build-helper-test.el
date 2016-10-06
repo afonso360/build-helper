@@ -1,4 +1,4 @@
-;;; build-helper --- Utilities to help build code -*- lexical-binding: t -*-
+;;; build-helper-test.el --- Utilities to help build code -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2016 Afonso Bordado
 
@@ -25,13 +25,23 @@
 ;;; Usage:
 
 ;;; Code:
-(ert-deftest get-target-test ()
-  "Test the `build-helper--get-target' function."
-  )
+(require 'build-helper)
+(require 'ert)
 
-(ert-deftest add-target-test ()
-  "Test the `build-helper--add-target' function."
-  )
+(ert-deftest set-get-comint-test ()
+  "Test both `build-helper--set-comint' and `build-helper--get-comint'.
+Should default to nil
+Should be settable to nil
+Should be able to set multiple times the same value, return the latest one"
+  (should (eq (build-helper--get-comint 'c-mode 'run) nil))
+  (build-helper--set-comint 'c-mode 'run nil)
+  (should (eq (build-helper--get-comint 'c-mode 'run) nil))
+  (build-helper--set-comint 'c-mode 'run t)
+  (should (eq (build-helper--get-comint 'c-mode 'run) t))
+  (build-helper--set-comint 'c-mode 'run nil)
+  (should (eq (build-helper--get-comint 'c-mode 'run) nil)))
+
+
 
 (provide 'build-helper-test)
 ;;; build-helper-test.el ends here

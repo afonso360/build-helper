@@ -1,6 +1,7 @@
 (source gnu)
 (source melpa)
 
+(package-file "build-helper.el")
 (package "build-helper" "0.1" "Utilities to help build code")
 
 (depends-on "projectile")
