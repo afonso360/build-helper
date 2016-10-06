@@ -86,17 +86,25 @@
 (defun build-helper--get-target (project major target)
   "Get `compile-history' list for PROJECT for MAJOR mode and TARGET.
 If any of those is not found return nil."
-  (alist-get target (alist-get major (alist-get project build-helper--targets nil) nil) nil))
+  (alist-get target
+	     (alist-get major
+			(alist-get project build-helper--targets nil) nil) nil))
+
+(defun build-helper--get-target-string-list (project major)
+  "Return a list of string targets for PROJECT and MAJOR mode."
+  (mapcar #'car
+	  (alist-get major
+			   (alist-get project build-helper--targets nil) nil)))
 
 (defun build-helper--add-command-to-target (project major target command)
   "Add COMMAND entry to PROJECT, MAJOR mode and TARGET list.
 If any of PROJECT, MAJOR or TARGET are not found, create empty"
   (push command
-  	(alist-get target
-  		   (alist-get major
-  			      (alist-get project build-helper--targets nil)
-  			      nil)
-  		   nil)))
+	(alist-get target
+		   (alist-get major
+			      (alist-get project build-helper--targets nil)
+			      nil)
+		   nil)))
 
 ;;;###autoload
 (defun build-helper-run (target)
@@ -104,9 +112,11 @@ If any of PROJECT, MAJOR or TARGET are not found, create empty"
 This includes functions associated with the current `major-mode'.
 If none of those work, a `compile' prompt with a target and `major-mode' based history.
 This compile command will be executed from the projectile root directory."
-  (interactive "sTarget: ")
-  ;; ask for target type interactively
-  ;; Run functions, remember to check `build-helper-capture-function'
+  (interactive
+    (list (completing-read "Target: "
+		    (build-helper--get-target-string-list
+		     (projectile-project-root)
+		     major-mode))))
   (when (stringp target)
     (setq target (intern target)))
   (let* ((compile-history (build-helper--get-target (projectile-project-root)
