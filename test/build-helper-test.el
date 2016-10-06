@@ -42,12 +42,6 @@ Should be able to set multiple times the same value, return the latest one"
   (build-helper--set-comint 'c-mode 'run nil)
   (should (eq (build-helper--get-comint 'c-mode 'run) nil)))
 
-(setq build-helper--targets nil)
-(build-helper--get-target-string-list "/" 'c-mode)
-(build-helper--add-command-to-target "/" 'c-mode 'test "ads")
-(build-helper--add-command-to-target "/" 'c-mode 'run "ads")
-(build-helper--get-target-string-list "/" 'c-mode)
-
 (ert-deftest get-target-string-list-test ()
   "Test the `build-helper--get-target-string-list' function."
   (setq build-helper--targets nil)
