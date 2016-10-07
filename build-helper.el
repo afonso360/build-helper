@@ -26,7 +26,9 @@
 ;;   Compilation functions are based on the major-mode from which they are invoked
 ;;   The return value should be checked to allow multiple
 ;;chains of compilation functions
-
+;; Todo:
+;; build-helper--targets gets a duplicate entry every time we add a command
+;; can't run commands with spaces
 
 ;; Some code based on company-statistics.el (https://github.com/company-mode/company-statistics)
 ;;; Usage:
@@ -77,9 +79,9 @@ By default the value is nil."
 (defun build-helper--get-target (project major target)
   "Get `compile-history' list for PROJECT for MAJOR mode and TARGET.
 If any of those is not found return nil."
-  (alist-get target
-	     (alist-get major
-			(alist-get project build-helper--targets nil) nil) nil))
+  (let ((nplist (assoc-string project build-helper--targets)))
+    (when nplist
+      (alist-get target (alist-get major (cdr nplist) nil) nil))))
 
 (defun build-helper--get-target-string-list (project major)
   "Return a list of string targets for PROJECT and MAJOR mode."

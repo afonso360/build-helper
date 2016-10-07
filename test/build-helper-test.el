@@ -51,12 +51,17 @@ Should be able to set multiple times the same value, return the latest one"
   (build-helper--add-command-to-target "/" 'c-mode 'test "test")
   (should (equal (build-helper--get-target-string-list "/" 'c-mode) '("test" "run"))))
 
-
-;; (ert-deftest add-get-target-test ()
-;;   "Test both `build-helper--get-target' and `build-helper--get-comint'.
-;; Should default to nil
-;; Should be settable to nil
-;; Should be able to set multiple times the same value, return the latest one")
+(ert-deftest add-get-target-test ()
+  "Test both `build-helper--get-target' and `build-helper--add-command-to-target'."
+  (setq build-helper--targets nil)
+  (should (eq (build-helper--get-target "/" 'c-mode 'run) nil))
+  (build-helper--add-command-to-target "/" 'c-mode 'run "command")
+  (should (equal (build-helper--get-target "/" 'c-mode 'run) '("command")))
+  (build-helper--add-command-to-target "/" 'c-mode 'run "command2")
+  (should (equal (build-helper--get-target "/" 'c-mode 'run) '("command2" "command")))
+  (build-helper--add-command-to-target "/" 'elisp-mode 'run "elisp")
+  (should-not (equal (build-helper--get-target "/" 'elisp-mode 'run) '("command2" "command")))
+  (should (equal (build-helper--get-target "/" 'elisp-mode 'run) '("elisp"))))
 
 (provide 'build-helper-test)
 ;;; build-helper-test.el ends here
