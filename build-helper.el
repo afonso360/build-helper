@@ -30,7 +30,9 @@
 ;; build-helper--targets gets a duplicate entry every time we add a command
 ;; can't run commands with spaces
 
-;; Some code based on company-statistics.el (https://github.com/company-mode/company-statistics)
+;; Some code based on company-statistics.el
+;; https://github.com/company-mode/company-statistics
+
 ;;; Usage:
 
 ;;; Code:
@@ -57,12 +59,12 @@
 (defun build-helper--save-targets ()
   "Save the targets to the build-helper-file."
   (with-temp-buffer
-    (insert (format "(setq build-helper--targets %s)" build-helper--targets))
-    (write-file build-helper-file)))
+    (insert (format "(setf build-helper--targets '%S)" build-helper--targets))
+    (write-file build-helper-file nil)))
 
 (defun build-helper--load-targets ()
   "Load the targets from build-helper-file."
-  (load build-helper-file 'noerror nil 'nosuffix))
+  (load-file build-helper-file))
 
 (defun build-helper--get-comint (major target)
   "Get the comint value for TARGET in MAJOR mode or nil.
@@ -127,7 +129,6 @@ Should the last function return nil, a compilation command will be asked."
 	(alist-get target
 		   (alist-get major build-helper--functions nil) nil)))
 
-;;;###autoload
 (defun build-helper-setup ()
   "Setup build-helper."
   (build-helper--load-targets)

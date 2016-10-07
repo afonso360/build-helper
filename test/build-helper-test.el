@@ -119,6 +119,17 @@ Should be able to set multiple times the same value, return the latest one"
     (should (equal (build-helper--run-all-functions 'c-mode 'run) t))
     (should (equal a 25))))
 
+(ert-deftest file-save-load-tests ()
+  "Test `build-helper--save-targets' and `build-helper--load-targets' functions."
+  (setq build-helper-file "./test-build-helper-file.el")
+  (setq build-helper-sample-target '("/example/dir" (c-mode (run ("stuff")))))
+  (setq build-helper--targets build-helper-sample-target)
+  (build-helper--save-targets)
+  (setq build-helper--targets nil)
+  (build-helper--load-targets)
+  (should (equal build-helper--targets build-helper-sample-target))
+  (when (file-exists-p build-helper-file)
+    (delete-file build-helper-file)))
 
 (provide 'build-helper-test)
 ;;; build-helper-test.el ends here
