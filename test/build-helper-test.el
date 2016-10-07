@@ -27,6 +27,7 @@
 ;;; Code:
 (require 'build-helper)
 (require 'ert)
+(require 'gv)
 
 (ert-deftest set-get-comint-test ()
   "Test both `build-helper--set-comint' and `build-helper--get-comint'.
@@ -76,6 +77,47 @@ Should be able to set multiple times the same value, return the latest one"
   (build-helper-add-function 'elisp-mode 'test #'cdr)
   (should (equal build-helper--functions
 		 '((elisp-mode (test cdr)) (c-mode (test cdr) (run cdr car))))))
+
+(ert-deftest run-all-functions ()
+  "Test `build-helper--run-all-functions'."
+  (setq build-helper--functions nil)
+  (let* ((a 0)
+	 (p (gv-ref a)))
+    (build-helper-add-function ;; should run first every time
+     'c-mode
+     'run
+     #'(lambda () (setf (gv-deref p) (+ 1 (gv-deref p))) nil))
+
+    (should (equal (build-helper--run-all-functions 'c-mode 'run) nil))
+    (should (equal a 1))
+
+    (build-helper-add-function ;; should run second every time
+     'c-mode
+     'run
+     #'(lambda () (setf (gv-deref p) (+ 2 (gv-deref p))) nil))
+
+    (should (equal (build-helper--run-all-functions 'c-mode 'run) nil))
+    (should (equal a 4))
+
+    (build-helper-add-function ;; should run last every time, no further functions executed
+     'c-mode
+     'run
+     #'(lambda () (setf (gv-deref p) (+ 4 (gv-deref p))) t))
+
+    (should (equal (build-helper--run-all-functions 'c-mode 'run) t))
+    (should (equal a 11))
+    (should (equal (build-helper--run-all-functions 'c-mode 'run) t))
+    (should (equal a 18))
+
+    ;; never should run, this catches issues such as
+    ;; execution in the reverse order
+    (build-helper-add-function
+     'c-mode
+     'run
+     #'(lambda () (setf (gv-deref p) (+ 100 (gv-deref p))) nil))
+
+    (should (equal (build-helper--run-all-functions 'c-mode 'run) t))
+    (should (equal a 25))))
 
 
 (provide 'build-helper-test)

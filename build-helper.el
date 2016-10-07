@@ -98,6 +98,25 @@ If any of PROJECT, MAJOR or TARGET are not found, create empty"
       (setq nplist (cons project '())))
     (push command (alist-get target (alist-get major (cdr nplist) nil) nil))
     (push nplist build-helper--targets)))
+
+(defun build-helper--run-all-functions (major target)
+    "Run all functions associated with a TARGET and MAJOR mode
+
+Functions will be executed in the order that they were registered in.
+
+Should any function return t halt the execution of the following functions
+otherwise keep executing.
+
+If the last function returns nil, or if there is no functions to be executed
+return nil, otherwise return t"
+    (let ((funlist (alist-get target
+			      (alist-get major build-helper--functions nil) nil)))
+      (when funlist
+	(let (value)
+	  (dolist (fun (reverse funlist) value)
+	    (unless value
+	      (setq value (funcall fun))))))))
+
 (defun build-helper-add-function (major target function)
   "Add a FUNCTION to be executed when TARGET is run in MAJOR mode.
 
