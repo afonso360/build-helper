@@ -63,5 +63,20 @@ Should be able to set multiple times the same value, return the latest one"
   (should-not (equal (build-helper--get-target "/" 'elisp-mode 'run) '("command2" "command")))
   (should (equal (build-helper--get-target "/" 'elisp-mode 'run) '("elisp"))))
 
+
+(ert-deftest add-target-function ()
+  "Test `build-helper-add-function'."
+  (setq build-helper--functions nil)
+  (build-helper-add-function 'c-mode 'run #'car)
+  (should (equal build-helper--functions '((c-mode (run car)))))
+  (build-helper-add-function 'c-mode 'run #'cdr)
+  (should (equal build-helper--functions '((c-mode (run cdr car)))))
+  (build-helper-add-function 'c-mode 'test #'cdr)
+  (should (equal build-helper--functions '((c-mode (test cdr) (run cdr car)))))
+  (build-helper-add-function 'elisp-mode 'test #'cdr)
+  (should (equal build-helper--functions
+		 '((elisp-mode (test cdr)) (c-mode (test cdr) (run cdr car))))))
+
+
 (provide 'build-helper-test)
 ;;; build-helper-test.el ends here

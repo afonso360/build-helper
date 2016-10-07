@@ -98,6 +98,15 @@ If any of PROJECT, MAJOR or TARGET are not found, create empty"
       (setq nplist (cons project '())))
     (push command (alist-get target (alist-get major (cdr nplist) nil) nil))
     (push nplist build-helper--targets)))
+(defun build-helper-add-function (major target function)
+  "Add a FUNCTION to be executed when TARGET is run in MAJOR mode.
+
+Functions are guaranteed to be executed in the order of registration.
+If a function returns t no other functions will be executed.
+Should the last function return nil, a compilation command will be asked."
+  (push function
+	(alist-get target
+		   (alist-get major build-helper--functions nil) nil)))
 
 ;;;###autoload
 (defun build-helper-setup ()
