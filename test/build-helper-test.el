@@ -52,6 +52,47 @@ Should be able to set multiple times the same value, return the latest one"
   (build-helper--add-command-to-target "/" 'c-mode 'test "test")
   (should (equal (build-helper--get-target-string-list "/" 'c-mode) '("test" "run"))))
 
+(ert-deftest add-target-project-length-test ()
+  "Test `build-helper--add-command-to-target'.
+The objective of the test is to test the length of the project list"
+  (setq build-helper--targets nil)
+  (build-helper--add-command-to-target "/" 'c-mode 'run "command")
+  (build-helper--add-command-to-target "/" 'c-mode 'run "command")
+  (build-helper--add-command-to-target "/" 'c-mode 'test "command")
+  (build-helper--add-command-to-target "/" 'elisp-mode 'test "command")
+  (should (equal (length build-helper--targets) 1))
+  (build-helper--add-command-to-target "/a" 'elisp-mode 'test "command")
+  (should (equal (length build-helper--targets) 2)))
+
+(ert-deftest add-target-target-length-test ()
+  "Test `build-helper--add-command-to-target'.
+The objective of the test is to test the length of the target list"
+  (setq build-helper--targets nil)
+  (build-helper--add-command-to-target "/" 'c-mode 'run "command")
+  (should (equal (length (cdr (assoc 'c-mode (assoc-string "/" build-helper--targets)))) 1))
+  (build-helper--add-command-to-target "/" 'c-mode 'test "command")
+  (should (equal (length (cdr (assoc 'c-mode (assoc-string "/" build-helper--targets)))) 2)))
+
+(ert-deftest add-target-major-length-test ()
+  "Test `build-helper--add-command-to-target'.
+The objective of the test is to test the length of the major list"
+  (setq build-helper--targets nil)
+  (build-helper--add-command-to-target "/" 'c-mode 'run "command")
+  (build-helper--add-command-to-target "/" 'c-mode 'run "command")
+  (build-helper--add-command-to-target "/" 'c-mode 'test "command")
+  (should (equal (length (cdr (assoc-string "/" build-helper--targets))) 1))
+  (build-helper--add-command-to-target "/" 'elisp-mode 'test "command")
+  (should (equal (length (cdr (assoc-string "/" build-helper--targets))) 2)))
+
+(ert-deftest add-target-command-length-test ()
+  "Test `build-helper--add-command-to-target'.
+The objective of the test is to test the length of the command list"
+  (setq build-helper--targets nil)
+  (build-helper--add-command-to-target "/" 'c-mode 'run "command")
+  (should (equal (length (cdr (assoc 'run (assoc 'c-mode (assoc-string "/" build-helper--targets))))) 1))
+  (build-helper--add-command-to-target "/" 'c-mode 'run "command")
+  (should (equal (length (cdr (assoc 'run (assoc 'c-mode (assoc-string "/" build-helper--targets))))) 2)))
+
 (ert-deftest add-get-target-test ()
   "Test both `build-helper--get-target' and `build-helper--add-command-to-target'."
   (setq build-helper--targets nil)
