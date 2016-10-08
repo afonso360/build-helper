@@ -94,7 +94,8 @@
 
 (defun build-helper--load-targets ()
   "Load the targets from ‘build-helper-file’."
-  (load-file build-helper-file))
+  (ignore-errors
+    (load build-helper-file)))
 
 (defun build-helper--get-comint (major target)
   "Get the comint value for the specified MAJOR mode and TARGET or nil.
