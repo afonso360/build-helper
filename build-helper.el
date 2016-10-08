@@ -178,13 +178,20 @@ Should the last function return nil, a compilation command will be asked."
 			   major-mode))))
   (when (stringp target)
     (setq target (intern target)))
-  (unless (build-helper--run-all-functions major-mode target)
-    (let* ((compile-history (build-helper--get-target (projectile-project-root)
-						      major-mode
-						      target))
-	   (comint (build-helper--get-comint major-mode target)))
-      (let ((default-directory (projectile-project-root)))
-	(compile (car compile-history) comint)))))
+
+  (let* ((compile-history (build-helper--get-target (projectile-project-root)
+						    major-mode
+						    target))
+	 (comint (build-helper--get-comint major-mode target)))
+    ;; when we have a compile history, run normally
+    (when compile-history
+      (unless (build-helper--run-all-functions major-mode target)
+	(let ((default-directory (projectile-project-root)))
+	  (compile (car compile-history) comint))))
+
+    ;; when we don't have a compile history, run the normal run
+    (unless compile-history
+      (build-helper-run target))))
 
 ;;;###autoload
 (defun build-helper-run (target)
