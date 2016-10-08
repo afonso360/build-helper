@@ -178,12 +178,13 @@ Should the last function return nil, a compilation command will be asked."
 			   major-mode))))
   (when (stringp target)
     (setq target (intern target)))
-  (let* ((compile-history (build-helper--get-target (projectile-project-root)
-						    major-mode
-						    target))
-	 (comint (build-helper--get-comint major-mode target)))
-    (let ((default-directory (projectile-project-root)))
-      (compile (car compile-history) comint))))
+  (unless (build-helper--run-all-functions major-mode target)
+    (let* ((compile-history (build-helper--get-target (projectile-project-root)
+						      major-mode
+						      target))
+	   (comint (build-helper--get-comint major-mode target)))
+      (let ((default-directory (projectile-project-root)))
+	(compile (car compile-history) comint)))))
 
 ;;;###autoload
 (defun build-helper-run (target)
@@ -199,24 +200,25 @@ This compile command will be executed from the projectile root directory."
 			  nil)))
   (when (stringp target)
     (setq target (intern target)))
-  (let* ((compile-history (build-helper--get-target (projectile-project-root)
-						    major-mode
-						    target))
-	 (comint (build-helper--get-comint major-mode target))
-	 (command (completing-read (format "'%s' command: " target)
-				   nil
-				   nil
-				   nil
-				   (car  compile-history)
-				   '(compile-history . 1))))
+  (unless (build-helper--run-all-functions major-mode target)
+    (let* ((compile-history (build-helper--get-target (projectile-project-root)
+						      major-mode
+						      target))
+	   (comint (build-helper--get-comint major-mode target))
+	   (command (completing-read (format "'%s' command: " target)
+				     nil
+				     nil
+				     nil
+				     (car  compile-history)
+				     '(compile-history . 1))))
 
-    (unless (string-equal (car compile-history) (cadr compile-history))
-      (build-helper--add-command-to-target (projectile-project-root)
-					   major-mode
-					   target command))
+      (unless (string-equal (car compile-history) (cadr compile-history))
+	(build-helper--add-command-to-target (projectile-project-root)
+					     major-mode
+					     target command))
 
-    (let ((default-directory (projectile-project-root)))
-      (compile command comint))))
+      (let ((default-directory (projectile-project-root)))
+	(compile command comint)))))
 
 ;;;###autoload
 (defun build-helper-re-run-test ()
