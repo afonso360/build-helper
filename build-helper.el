@@ -6,6 +6,7 @@
 ;; Version: 0.1
 ;; URL: http://github.com/afonso360/build-helper
 ;; Keywords: convenience
+;; Package-Requires: ((projectile "0.9.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -28,7 +29,6 @@
 
 ;; Todo:
 ;; build-helper--targets gets a duplicate entry every time we add a command
-;; can't run commands with spaces
 
 ;;; Usage:
 ;; For a quick setup add these lines to your init.el
@@ -90,22 +90,22 @@
   "Build helper targets.")
 
 (defun build-helper--save-targets ()
-  "Save the targets to the build-helper-file."
+  "Save the targets to the ‘build-helper-file’."
   (with-temp-buffer
     (insert (format "(setf build-helper--targets '%S)" build-helper--targets))
     (write-file build-helper-file nil)))
 
 (defun build-helper--load-targets ()
-  "Load the targets from build-helper-file."
+  "Load the targets from ‘build-helper-file’."
   (load-file build-helper-file))
 
 (defun build-helper--get-comint (major target)
-  "Get the comint value for TARGET in MAJOR mode or nil.
+  "Get the comint value for the specified MAJOR mode and TARGET or nil.
 Unlike with targets these values are not saved"
   (car (alist-get target (alist-get major build-helper--comint  nil) nil)))
 
 (defun build-helper--set-comint (major target value)
-  "Set comint VALUE for TARGET in MAJOR mode.
+  "For the specified MAJOR mode and TARGET set the comint VALUE.
 By default the value is nil."
   (push value
 	(alist-get target
@@ -126,8 +126,8 @@ If any of those is not found return nil."
    (cdr (assoc major (cdr (assoc project build-helper--targets))))))
 
 (defun build-helper--add-command-to-target (project major target command)
-  "Add COMMAND entry to PROJECT, MAJOR mode and TARGET list.
-If any of PROJECT, MAJOR or TARGET are not found, create empty"
+  "Add an entry to a PROJECT in a MAJOR mode for a TARGET,the entry is COMMAND.
+If any of PROJECT, MAJOR or TARGET are not found create them."
   (let ((nplist (assoc-string project build-helper--targets)))
     (unless nplist
       (setq nplist (cons project '())))
@@ -135,7 +135,7 @@ If any of PROJECT, MAJOR or TARGET are not found, create empty"
     (push nplist build-helper--targets)))
 
 (defun build-helper--run-all-functions (major target)
-    "Run all functions associated with a TARGET and MAJOR mode
+    "Run all functions associated with a MAJOR mode and TARGET.
 
 Functions will be executed in the order that they were registered in.
 
@@ -153,7 +153,7 @@ return nil, otherwise return t"
 	      (setq value (funcall fun))))))))
 
 (defun build-helper-add-function (major target function)
-  "Add a FUNCTION to be executed when TARGET is run in MAJOR mode.
+  "Add to a MAJOR mode and TARGET a FUNCTION to be executed when ran.
 
 Functions are guaranteed to be executed in the order of registration.
 If a function returns t no other functions will be executed.
@@ -187,10 +187,14 @@ Should the last function return nil, a compilation command will be asked."
 
 ;;;###autoload
 (defun build-helper-run (target)
-  "Run a TARGET.
-This includes functions associated with the current `major-mode'.
-If none of those work, a `compile' prompt with a target and `major-mode' based history.
-This compile command will be executed from the projectile root directory."
+  "Run functions associated with TARGET, prompt if all fail.
+
+This runs functions associated with the current `major-mode' and TARGET.
+
+If all functions return nil, display a prompt with history of the last commands
+executed in this project, `major-mode' and target.
+
+This compile command will be executed from the function `projectile-project-root' directory."
   (interactive
    (list (completing-read "Target: "
 			  (build-helper--get-target-string-list
