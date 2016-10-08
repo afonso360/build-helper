@@ -27,9 +27,6 @@
 ;; these commands persist across Emacs sessions and in the same project
 ;; different major modes can have different run commands
 
-;; Todo:
-;; build-helper--targets gets a duplicate entry every time we add a command
-
 ;;; Usage:
 ;; For a quick setup add these lines to your init.el
 ;;
@@ -129,9 +126,11 @@ If any of those is not found return nil."
   "Add an entry to a PROJECT in a MAJOR mode for a TARGET,the entry is COMMAND.
 If any of PROJECT, MAJOR or TARGET are not found create them."
   (let ((nplist (assoc-string project build-helper--targets)))
-    (unless nplist
+    (if nplist
+	(setf build-helper--targets (delete nplist build-helper--targets))
       (setq nplist (cons project '())))
     (push command (alist-get target (alist-get major (cdr nplist) nil) nil))
+    (delete nplist build-helper--targets)
     (push nplist build-helper--targets)))
 
 (defun build-helper--run-all-functions (major target)
