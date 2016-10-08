@@ -162,6 +162,7 @@ Should the last function return nil, a compilation command will be asked."
 	(alist-get target
 		   (alist-get major build-helper--functions nil) nil)))
 
+;;;###autoload
 (defun build-helper-setup ()
   "Setup build-helper."
   (build-helper--load-targets)
