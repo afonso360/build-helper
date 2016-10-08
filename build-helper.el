@@ -29,7 +29,6 @@
 ;; Todo:
 ;; build-helper--targets gets a duplicate entry every time we add a command
 ;; can't run commands with spaces
-;; execute functions
 
 ;;; Usage:
 ;; For a quick setup add these lines to your init.el
@@ -205,12 +204,12 @@ This compile command will be executed from the projectile root directory."
 						      major-mode
 						      target))
 	   (comint (build-helper--get-comint major-mode target))
-	   (command (completing-read (format "'%s' command: " target)
-				     nil
-				     nil
-				     nil
-				     (car  compile-history)
-				     '(compile-history . 1))))
+	   (command (read-from-minibuffer (format "'%s' command: " target)
+					  nil
+					  nil
+					  nil
+					  '(compile-history . 1)
+					  (car compile-history))))
 
       (unless (string-equal (car compile-history) (cadr compile-history))
 	(build-helper--add-command-to-target (projectile-project-root)
