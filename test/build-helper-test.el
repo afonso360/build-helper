@@ -34,7 +34,7 @@
 Should default to nil
 Should be settable to nil
 Should be able to set multiple times the same value, return the latest one"
-  (setq build-helper--comint nil)
+  (setq build-helper-comint nil)
   (should (eq (build-helper--get-comint 'c-mode 'run) nil))
   (build-helper--set-comint 'c-mode 'run nil)
   (should (eq (build-helper--get-comint 'c-mode 'run) nil))
@@ -108,20 +108,20 @@ The objective of the test is to test the length of the command list"
 
 (ert-deftest add-target-function ()
   "Test `build-helper-add-function'."
-  (setq build-helper--functions nil)
+  (setq build-helper-functions nil)
   (build-helper-add-function 'c-mode 'run #'car)
-  (should (equal build-helper--functions '((c-mode (run car)))))
+  (should (equal build-helper-functions '((c-mode (run car)))))
   (build-helper-add-function 'c-mode 'run #'cdr)
-  (should (equal build-helper--functions '((c-mode (run cdr car)))))
+  (should (equal build-helper-functions '((c-mode (run cdr car)))))
   (build-helper-add-function 'c-mode 'test #'cdr)
-  (should (equal build-helper--functions '((c-mode (test cdr) (run cdr car)))))
+  (should (equal build-helper-functions '((c-mode (test cdr) (run cdr car)))))
   (build-helper-add-function 'elisp-mode 'test #'cdr)
-  (should (equal build-helper--functions
+  (should (equal build-helper-functions
 		 '((elisp-mode (test cdr)) (c-mode (test cdr) (run cdr car))))))
 
 (ert-deftest run-all-functions ()
   "Test `build-helper--run-all-functions'."
-  (setq build-helper--functions nil)
+  (setq build-helper-functions nil)
   (let* ((a 0)
 	 (p (gv-ref a)))
     (build-helper-add-function ;; should run first every time
