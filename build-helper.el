@@ -70,12 +70,13 @@
 
 (defgroup build-helper nil
   "Helper functions to build files."
-  :group 'build-helper)
+  :group 'tools)
 
 (defcustom build-helper-file
   (concat user-emacs-directory ".build-helper-targets.el")
   "File to save build-helper command history."
-  :type 'string)
+  :type 'string
+  :group 'build-helper)
 
 (defvar build-helper--functions '()
   "Build helper functions.")
