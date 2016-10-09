@@ -75,14 +75,27 @@
 (defcustom build-helper-file
   (concat user-emacs-directory ".build-helper-targets.el")
   "File to save build-helper command history."
-  :type 'string
-  :group 'build-helper)
+  :group 'build-helper
+  :type 'string)
 
-(defvar build-helper--functions '()
-  "Build helper functions.")
+(defcustom build-helper-functions '()
+  "List of functions to run per major mode and per target."
+  :group 'build-helper
+  :type '(alist :tag "Major mode list"
+		:key-type (symbol :tag "Major mode")
+		:value-type (alist :tag "Target list"
+				   :key-type (symbol :tag "Target")
+				   :value-type (repeat :tag "Functions" function))))
 
-(defvar build-helper--comint '()
-  "Build helper comint state.")
+(defcustom build-helper-comint '()
+  "Comint settings for the compile buffer per major mode and per target."
+  :group 'build-helper
+  :type '(alist :tag "Major mode list"
+		:key-type (symbol :tag "Major mode")
+		:value-type (alist :tag "Target list"
+				   :key-type (symbol :tag "Target")
+				   :value-type (group (choice (const :tag "Compilation mode" nil)
+							      (const :tag "Comint mode" t))))))
 
 (defvar build-helper--targets '()
   "Build helper targets.")
@@ -101,14 +114,14 @@
 (defun build-helper--get-comint (major target)
   "Get the comint value for the specified MAJOR mode and TARGET or nil.
 Unlike with targets these values are not saved"
-  (car (alist-get target (alist-get major build-helper--comint  nil) nil)))
+  (car (alist-get target (alist-get major build-helper-comint  nil) nil)))
 
 (defun build-helper--set-comint (major target value)
   "For the specified MAJOR mode and TARGET set the comint VALUE.
 By default the value is nil."
   (push value
 	(alist-get target
-		   (alist-get major build-helper--comint  nil) nil)))
+		   (alist-get major build-helper-comint  nil) nil)))
 
 (defun build-helper--get-target (project major target)
   "Get `compile-history' list for PROJECT for MAJOR mode and TARGET.
@@ -146,7 +159,7 @@ otherwise keep executing.
 If the last function returns nil, or if there is no functions to be executed
 return nil, otherwise return t"
     (let ((funlist (alist-get target
-			      (alist-get major build-helper--functions nil) nil)))
+			      (alist-get major build-helper-functions nil) nil)))
       (when funlist
 	(let (value)
 	  (dolist (fun (reverse funlist) value)
@@ -161,7 +174,7 @@ If a function returns t no other functions will be executed.
 Should the last function return nil, a compilation command will be asked."
   (push function
 	(alist-get target
-		   (alist-get major build-helper--functions nil) nil)))
+		   (alist-get major build-helper-functions nil) nil)))
 
 ;;;###autoload
 (defun build-helper-setup ()
